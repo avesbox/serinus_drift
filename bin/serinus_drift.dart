@@ -26,37 +26,35 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
 }
 
 class AppModule extends Module {
-  AppModule() : super(
-    imports: [
-      DriftModule(AppDatabase(NativeDatabase.memory())),
-      DriftModule.forFeature<AppDatabase>(
-        daos: (database) => [
-          UsersDao(database)
-        ], 
-      ),
-    ],
-    controllers: [
-      UserController()
-    ]
-  );
+  AppModule()
+    : super(
+        imports: [
+          DriftModule(AppDatabase(NativeDatabase.memory())),
+          DriftModule.forFeature<AppDatabase>(
+            daos: (database) => [UsersDao(database)],
+          ),
+        ],
+        controllers: [UserController()],
+      );
 }
 
 class UserController extends Controller {
   UserController() : super('/users') {
-    
     on(Route.get('/'), (context) async {
       // Inject the feature-specific DAO!
       final usersDao = context.use<UsersDao>();
       // Inject the Drift database
       final db = context.use<AppDatabase>();
-      
+
       // Perform your Drift queries
       final users = await db.select(db.users).get();
       final usersFromDao = await usersDao.getAllUsers();
-      
+
       return {
         'users': users.map((u) => {'id': u.id, 'name': u.name}).toList(),
-        'usersFromDao': usersFromDao.map((u) => {'id': u.id, 'name': u.name}).toList(),
+        'usersFromDao': usersFromDao
+            .map((u) => {'id': u.id, 'name': u.name})
+            .toList(),
       };
     });
     on(Route.post('/'), (RequestContext<Map<String, dynamic>> context) async {
@@ -66,13 +64,10 @@ class UserController extends Controller {
       final id = await usersDao.insertUser(UsersCompanion(name: Value(name)));
       return {'id': id, 'name': name};
     });
-    
   }
 }
 
 Future<void> main() async {
-  final app = await serinus.createApplication(
-    entrypoint: AppModule(),
-  );
+  final app = await serinus.createApplication(entrypoint: AppModule());
   await app.serve();
 }

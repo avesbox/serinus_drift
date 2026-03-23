@@ -4,14 +4,13 @@ import 'package:serinus/serinus.dart';
 final _internalDbInstance = _InternalDbInstance();
 
 class DriftModule<T extends GeneratedDatabase> extends Module {
-
   @override
   bool get isGlobal => true;
 
   final T database;
 
   DriftModule(this.database);
-  
+
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     _internalDbInstance.database = database;
@@ -20,9 +19,7 @@ class DriftModule<T extends GeneratedDatabase> extends Module {
         DatabaseManager(),
         Provider.forValue<T>(database, asType: T),
       ],
-      exports: [
-        Export.value<T>()
-      ]
+      exports: [Export.value<T>()],
     );
   }
 
@@ -31,19 +28,15 @@ class DriftModule<T extends GeneratedDatabase> extends Module {
   }) {
     return DriftFeatureModule<T>(daos);
   }
-
 }
 
 class _InternalDbInstance {
-
   GeneratedDatabase? database;
 
   _InternalDbInstance();
-
 }
 
 class DatabaseManager extends Provider with OnApplicationShutdown {
-
   @override
   Future<void> onApplicationShutdown() async {
     final db = _internalDbInstance.database;
@@ -51,22 +44,22 @@ class DatabaseManager extends Provider with OnApplicationShutdown {
       await db.close();
     }
   }
-
 }
 
 class DriftFeatureModule<T extends GeneratedDatabase> extends Module {
-
   final List<DatabaseAccessor> Function(T database) init;
 
   DriftFeatureModule(this.init);
-  
+
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     final providers = <Provider>[];
     final exports = <Export>[];
     final database = _internalDbInstance.database;
     if (database == null) {
-      throw StateError('Drift database instance is not initialized. Make sure to register DriftModule before using DriftFeatureModule.');
+      throw StateError(
+        'Drift database instance is not initialized. Make sure to register DriftModule before using DriftFeatureModule.',
+      );
     }
     final accessors = init(database as T);
     for (final accessor in accessors) {
@@ -74,9 +67,6 @@ class DriftFeatureModule<T extends GeneratedDatabase> extends Module {
       providers.add(Provider.forValue(accessor, asType: type));
       exports.add(Export(type));
     }
-    return DynamicModule(
-      providers: providers,
-      exports: exports
-    );
+    return DynamicModule(providers: providers, exports: exports);
   }
 }
