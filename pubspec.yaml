@@ -1,6 +1,6 @@
 name: serinus_drift
 description: Drift integration for Serinus, allows you to use Serinus with Drift as the database layer.
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/avesbox/serinus_drift
 documentation: https://serinus.app/techniques/database
 homepage: https://serinus.app
